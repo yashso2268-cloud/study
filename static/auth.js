@@ -1,77 +1,182 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sadu Study | Authentication</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="bg-main h-screen flex flex-col items-center justify-center relative overflow-hidden">
-    <canvas id="particle-canvas" class="absolute inset-0 z-0 pointer-events-none"></canvas>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <div id="notification-toast" class="fixed top-6 right-6 z-50 hidden opacity-0 items-center gap-4 px-6 py-4 rounded-2xl bg-white border border-gray-100 shadow-2xl transition-all duration-300 max-w-sm">
-        <div id="toast-icon-bg" class="p-2 rounded-xl">
-            <i id="toast-icon" data-lucide="alert-circle" class="w-5 h-5"></i>
-        </div>
-        <p id="toast-message" class="text-sm font-semibold text-gray-800 tracking-wide"></p>
-    </div>
+const firebaseConfig = {
+    apiKey: "AIzaSyAyKFLs3H6kATCYb7_zRihgInK4qjilu9c",
+    authDomain: "sadu-study.firebaseapp.com",
+    projectId: "sadu-study",
+    storageBucket: "sadu-study.firebasestorage.app",
+    messagingSenderId: "936799993435",
+    appId: "1:936799993435:web:e8d8b13bba2c52bd4d097e"
+};
 
-    <div class="glass-card w-full max-w-md p-8 rounded-[32px] relative z-10 mx-4 border border-white/40 shadow-xl backdrop-blur-md bg-white/80">
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">SADU STUDY</h2>
-            <p id="authSubTitle" class="text-xs text-gray-500 mt-1 font-medium tracking-wide">Secure Management Infrastructure Portal</p>
-        </div>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+lucide.createIcons();
 
-        <div id="loginSection">
-            <form id="loginForm" class="space-y-5">
-                <input type="email" id="loginEmail" required placeholder="Email Address" class="w-full px-5 py-4 rounded-xl bg-white/60 border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm font-medium">
-                <input type="password" id="loginPassword" required placeholder="Password" class="w-full px-5 py-4 rounded-xl bg-white/60 border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm font-medium">
-                
-                <div id="login-error-msg" class="hidden items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 px-4 py-3 rounded-xl">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
-                    <span id="error-text-content"></span>
-                </div>
+let toastTimeoutId = null;
+let isLoginMode = true; 
 
-                <button type="submit" id="loginBtn" class="w-full bg-[#2b5edb] hover:bg-[#1e46a3] text-white py-4 rounded-xl font-bold text-base shadow-lg transition-all transform active:scale-[0.99]">Login</button>
-            </form>
+const showToast = (message, type = 'error') => {
+    const toast = document.getElementById('notification-toast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIconBg = document.getElementById('toast-icon-bg');
+    const toastIcon = document.getElementById('toast-icon');
+
+    if (toastTimeoutId) clearTimeout(toastTimeoutId);
+    toastMessage.innerText = message;
+
+    if (type === 'success') {
+        toastIconBg.className = "p-2 rounded-xl bg-green-100 text-green-600";
+        toastIcon.setAttribute('data-lucide', 'check-circle');
+    } else {
+        toastIconBg.className = "p-2 rounded-xl bg-red-100 text-red-600";
+        toastIcon.setAttribute('data-lucide', 'alert-circle');
+    }
+    
+    lucide.createIcons();
+    toast.classList.remove('hidden');
+    void toast.offsetWidth;
+    toast.classList.add('flex', 'opacity-100');
+
+    toastTimeoutId = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('hidden');
+    }, 4000);
+};
+
+const showSection = (id) => {
+    ['loginSection', 'resetSection', 'successSection'].forEach(s => {
+        document.getElementById(s).classList.toggle('hidden', s !== id);
+    });
+    document.getElementById('login-error-msg').classList.add('hidden');
+    document.getElementById('reset-error-msg').classList.add('hidden');
+};
+
+document.getElementById('toggleAuthModeBtn').onclick = () => {
+    isLoginMode = !isLoginMode;
+    const btn = document.getElementById('loginBtn');
+    const subtitle = document.getElementById('authSubTitle');
+    const prompt = document.getElementById('toggleFormPrompt');
+    const toggleBtn = document.getElementById('toggleAuthModeBtn');
+    document.getElementById('login-error-msg').classList.add('hidden');
+
+    if (isLoginMode) {
+        btn.innerText = "Login";
+        subtitle.innerText = "Secure Management Infrastructure Portal";
+        prompt.innerText = "Don't have an account?";
+        toggleBtn.innerText = "Sign Up here";
+    } else {
+        btn.innerText = "Create Account";
+        subtitle.innerText = "Register your credentials to gain database access";
+        prompt.innerText = "Already registered?";
+        toggleBtn.innerText = "Login here";
+    }
+};
+
+document.getElementById('forgotPassBtn').onclick = () => showSection('resetSection');
+document.getElementById('backBtn').onclick = () => { isLoginMode = true; showSection('loginSection'); };
+document.getElementById('okBtn').onclick = () => { isLoginMode = true; showSection('loginSection'); };
+
+// HANDLE LOGIN AND SIGN UP
+document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errorBox = document.getElementById('login-error-msg');
+    const errorText = document.getElementById('error-text-content');
+
+    errorBox.classList.add('hidden');
+    btn.disabled = true;
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (isLoginMode) {
+        btn.innerText = "Verifying Credentials...";
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            window.location.href = "/home.html";
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerText = "Login";
+            console.error("Login Error:", error.code);
             
-            <div class="mt-6 flex flex-col items-center gap-3 text-sm font-semibold">
-                <button type="button" id="forgotPassBtn" class="text-blue-600 hover:text-blue-800 hover:underline">Forgot Password?</button>
-                <p class="text-gray-500 text-xs mt-2">
-                    <span id="toggleFormPrompt">Don't have an account?</span>
-                    <button type="button" id="toggleAuthModeBtn" class="text-blue-600 hover:underline ml-1">Sign Up here</button>
-                </p>
-            </div>
-        </div>
+            let msg = "Authentication Failed: Account may not exist yet.";
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                msg = "Incorrect password. Please try again.";
+            } else if (error.code === 'auth/user-not-found') {
+                msg = "This email address is not registered.";
+            } else if (error.code === 'auth/invalid-email') {
+                msg = "Please enter a valid email structure.";
+            }
+            
+            errorText.innerText = msg;
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+            lucide.createIcons();
+        }
+    } else {
+        btn.innerText = "Registering Account...";
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            btn.disabled = false;
+            isLoginMode = true;
+            showToast("Account created successfully! You can now log in.", "success");
+            btn.innerText = "Login";
+            document.getElementById('loginForm').reset();
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerText = "Create Account";
+            console.error("Sign Up Error:", error.code);
+            let msg = "Failed to complete registration metrics.";
+            if (error.code === 'auth/email-already-in-use') {
+                msg = "This email is already registered.";
+            } else if (error.code === 'auth/weak-password') {
+                msg = "Password too weak. Use at least 6 characters.";
+            }
+            errorText.innerText = msg;
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+            lucide.createIcons();
+        }
+    }
+};
 
-        <div id="resetSection" class="hidden">
-            <form id="resetForm" class="space-y-5 text-center">
-                <p class="text-sm text-gray-600 mb-2 font-medium">Enter your registered email address to receive a recovery link:</p>
-                <input type="email" id="resetEmail" required placeholder="Your Account Email" class="w-full px-5 py-4 rounded-xl bg-white/60 border border-gray-200 outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 text-sm font-medium">
-                
-                <div id="reset-error-msg" class="hidden items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 px-4 py-3 rounded-xl text-left">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
-                    <span id="reset-error-text"></span>
-                </div>
+// HANDLE PASSWORD RESET ALERTS EXCLUSIVELY
+document.getElementById('resetForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('resetBtn');
+    const errorBox = document.getElementById('reset-error-msg');
+    const errorText = document.getElementById('reset-error-text');
+    const email = document.getElementById('resetEmail').value.trim();
+    
+    errorBox.classList.add('hidden');
+    btn.disabled = true;
+    btn.innerText = "Sending Link...";
 
-                <button type="submit" id="resetBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-bold text-base shadow-lg">Send Link</button>
-                <button type="button" id="backBtn" class="w-full text-gray-500 text-xs font-bold uppercase tracking-wider mt-2 hover:text-gray-800">Cancel & Return</button>
-            </form>
-        </div>
+    try {
+        await sendPasswordResetEmail(auth, email);
+        btn.disabled = false;
+        btn.innerText = "Send Link";
+        document.getElementById('resetForm').reset();
+        showSection('successSection');
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerText = "Send Link";
+        console.error("Actual Password Reset Server Error:", error.code);
+        
+        let msg = "Failed to send reset link. Try again later.";
+        if (error.code === 'auth/user-not-found') {
+            msg = "This email is not registered in our database system.";
+        } else if (error.code === 'auth/invalid-email') {
+            msg = "Please enter a properly formatted email layout.";
+        } else if (error.code === 'auth/invalid-credential') {
+            msg = "Firebase key block error. Ensure Email/Password provider is enabled in Firebase Console.";
+        }
 
-        <div id="successSection" class="hidden text-center space-y-5">
-            <div class="mx-auto w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                <i data-lucide="check" class="w-6 h-6"></i>
-            </div>
-            <p class="text-gray-800 font-bold text-lg">Email Transmitted Successfully!</p>
-            <p class="text-sm text-gray-500 px-4">Please check your inbox folder to set your updated password config values.</p>
-            <button type="button" id="okBtn" class="w-full bg-gray-900 hover:bg-black text-white py-4 rounded-xl font-bold text-base shadow-md">Return to Login</button>
-        </div>
-    </div>
-
-    <script type="module" src="{{ url_for('static', filename='auth.js') }}"></script>
-</body>
-</html>
+        errorText.innerText = msg;
+        errorBox.classList.remove('hidden');
+        errorBox.classList.add('flex');
+        lucide.createIcons();
+    }
+};
