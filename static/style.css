@@ -1,0 +1,46 @@
+/* Core Styling for Sadu Study */
+body { 
+    font-family: 'Poppins', sans-serif; 
+    overflow: hidden; 
+    background-color: #0d0620; 
+}
+
+/* Main Background Gradient */
+.bg-main { 
+    background-image: radial-gradient(circle at 50% -20%, #2b1c5a 0%, #0d0620 60%); 
+}
+
+/* Glassmorphism Card Effect */
+.glass-card { 
+    background: rgba(255, 255, 255, 0.7); 
+    backdrop-filter: blur(20px); 
+    border: 1px solid rgba(255, 255, 255, 0.4); 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+}
+
+/* Notification Toast Animation */
+#notification-toast { 
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    transform: translateY(100px); 
+    opacity: 0; 
+}
+
+#notification-toast.show { 
+    transform: translateY(0); 
+    opacity: 1; 
+}
+
+/* Utility Classes */
+.hidden { 
+    display: none; 
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Particle Canvas Layering */
+#particle-canvas {
+    z-index: 0;
+}

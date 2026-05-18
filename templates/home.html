@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sadu Study | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #0d0620; color: white; }
+        .bg-main {
+            background-image: radial-gradient(circle at 50% -20%, #2b1c5a 0%, #0d0620 60%);
+            min-height: 100vh;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .course-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .course-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            border-color: #4ade80;
+        }
+    </style>
+</head>
+<body class="bg-main">
+
+    <nav class="glass-nav sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="w-8 h-8" alt="Logo">
+            <span class="font-bold text-xl tracking-wider">SADU STUDY</span>
+        </div>
+        <h1 class="hidden md:block text-sm font-semibold tracking-widest text-blue-400 uppercase">
+            Get Your Career Roadmap
+        </h1>
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <input id="courseSearch" type="text" placeholder="Search 50+ Courses..." 
+                    class="bg-white/10 border border-white/20 rounded-full py-2 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500 w-64 text-sm">
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <header class="text-center mb-16">
+            <h2 class="text-4xl md:text-6xl font-extrabold mb-4">Explore Your Path</h2>
+            <p class="text-gray-400">Select a course to view your personalized learning roadmap.</p>
+        </header>
+
+        <div id="courseGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. Generate 50 Courses
+        const courses = [
+            "Web Development", "Data Science", "AI Engineer", "Cyber Security", "UI/UX Design",
+            "Cloud Computing", "App Development", "Blockchain", "Digital Marketing", "Python Pro",
+            "Java Mastery", "Machine Learning", "DevOps Pro", "Game Design", "Ethical Hacking",
+            "Data Analytics", "React Native", "Embedded Systems", "AR/VR Dev", "Software Testing",
+            "Network Admin", "Database Pro", "Graphic Design", "Video Editing", "Big Data",
+            "FinTech", "HealthTech", "Ecommerce Pro", "SEO Expert", "Project Management",
+            "Business Analytics", "Deep Learning", "Automation QA", "Full Stack JS", "Go Language",
+            "Rust System", "Cloud Architecture", "Salesforce", "Power BI", "Tableau Pro",
+            "Kubernetes", "Docker Expert", "API Design", "Microservices", "NLP Specialist",
+            "Computer Vision", "C++ Master", "PHP Backend", "Laravel Pro", "Swift App Dev"
+        ];
+
+        const grid = document.getElementById('courseGrid');
+
+        courses.forEach((course) => {
+            const card = document.createElement('div');
+            card.className = "course-card p-6 rounded-2xl flex flex-col justify-between h-48";
+            card.innerHTML = `
+                <div>
+                    <h3 class="text-lg font-bold mb-2">${course}</h3>
+                    <p class="text-xs text-gray-500">8 Modules • 12 Weeks</p>
+                </div>
+                <a href="roadmap.html?course=${encodeURIComponent(course)}" 
+                   class="bg-blue-600 hover:bg-blue-500 text-white text-center py-2 rounded-xl text-sm font-semibold transition-colors">
+                   Get Roadmap
+                </a>
+            `;
+            grid.appendChild(card);
+        });
+
+        // 2. Search Functionality
+        document.getElementById('courseSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.course-card').forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                card.style.display = title.includes(query) ? 'flex' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
