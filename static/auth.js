@@ -74,7 +74,6 @@ document.getElementById('toggleAuthModeBtn').onclick = () => {
     }
 };
 
-document.getElementById('forgotPassBtn').onclick = () => showSection('resetSection');
 document.getElementById('backBtn').onclick = () => { isLoginMode = true; showSection('loginSection'); };
 document.getElementById('okBtn').onclick = () => { isLoginMode = true; showSection('loginSection'); };
 
